@@ -76,27 +76,27 @@ const brainrotCatalog = [
 
 const mutationsList = [
   "None", "None", "None", "None", "None", "None",
-  "Rainbow (10x)",
-  "Galaxy (7x)",
-  "Gold (1.25x)",
-  "Diamond (1.5x)",
-  "Bloodrot (2x)",
-  "Lava (6x)",
-  "Cursed (9x)",
-  "Radioactive (8.5x)",
-  "Phantom (12x)",
-  "Crystal (13x)",
-  "Eclipse (14x)"
+  "Rainbow",
+  "Galaxy",
+  "Gold",
+  "Diamond",
+  "Bloodrot",
+  "Lava",
+  "Cursed",
+  "Radioactive",
+  "Phantom",
+  "Crystal",
+  "Eclipse"
 ];
 
 const othersList = [
   "None", "None", "None", "None",
-  "1x Bambini Crostini",
-  "2x Cachorrito Melonito",
-  "1x Caramello Filtrello"
+  "Bambini Crostini",
+  "Cachorrito Melonito",
+  "Caramello Filtrello"
 ];
 
-// Helper: Post formatted Brainrot embed to Discord channel
+// Helper: Post clean emoji-free Brainrot embed to Discord channel
 function sendDiscordDropEmbed(log) {
   const channelId = DISCORD_CHANNELS[log.tier] || DISCORD_CHANNELS["peaklight"];
   if (!channelId || !DISCORD_BOT_TOKEN) return;
@@ -110,12 +110,12 @@ function sendDiscordDropEmbed(log) {
     title: `${log.name} [${log.rate}]`,
     fields: [
       {
-        name: "Mutation 🧬",
+        name: "Mutation",
         value: `\`\`\`\n${log.mutation}\n\`\`\``,
         inline: true
       },
       {
-        name: "Other 🐾",
+        name: "Other",
         value: `\`\`\`\n${log.other}\n\`\`\``,
         inline: true
       }
@@ -144,9 +144,7 @@ function sendDiscordDropEmbed(log) {
     }
   };
 
-  const req = https.request(options, (res) => {
-    // success or rate limit
-  });
+  const req = https.request(options, (res) => {});
   req.on('error', (e) => {
     console.error('Discord webhook error:', e.message);
   });
@@ -294,7 +292,6 @@ function generateBrainrotLog(options = {}) {
     tier: item.tier,
     rarity: item.tier === "ultra-light" ? "MYTHIC" : (item.tier === "peaklight" ? "LEGENDARY" : "HIGH-TIER"),
     game: "Steal a Brainrot",
-    icon: "🧠",
     name: item.name,
     rate: item.rate,
     mutation: mutation,
@@ -310,7 +307,7 @@ function generateBrainrotLog(options = {}) {
   state.logs.unshift(log);
   if (state.logs.length > 200) state.logs.pop();
 
-  // Send to Discord channel automatically!
+  // Send clean emoji-free embed to Discord
   sendDiscordDropEmbed(log);
 
   // Broadcast to all active WebSocket clients
