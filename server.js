@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// In-Memory Database / State for Drip Finder (SwagFinder-exact structure)
+// In-Memory Database / State for Slick Finder (SwagFinder-exact structure)
 const state = {
   user: {
     username: "dick1337",
@@ -23,14 +23,14 @@ const state = {
     balance: 2.00,
     isAdmin: true,
     totalSlots: 24,
-    activeSlots: 18
+    activeSlots: 0
   },
   settings: {
     slotsPaused: false,
     wsStatus: "ONLINE",
     totalSlots: 24,
-    activeSlots: 18,
-    announcement: "Drip Finder v1.0.0 is LIVE. Fast server sniffing & automated WebSocket relays operational."
+    activeSlots: 0,
+    announcement: "Slick Finder v1.0.0 is LIVE. Fast server sniffing & automated WebSocket relays operational."
   },
   slots: [],
   logs: [],
@@ -131,7 +131,7 @@ tiers.forEach(tier => {
       tier: tier.name,
       category: tier.category,
       pricePerHour: tier.price,
-      isActive: isActive,
+      isActive: false,
       isOwner: isOwner,
       isRenter: isRented,
       label: `Drip ${tier.name} #${slotCounter}`,
@@ -238,16 +238,16 @@ app.get('/api/logs', (req, res) => {
 
 app.get('/api/script', (req, res) => {
   res.setHeader('Content-Type', 'text/plain');
-  res.send(`-- [Drip Finder Loader v1.0.0]
+  res.send(`-- [Slick Finder Loader v1.0.0]
 local function _get_key()
     local e = (type(getgenv) == "function" and getgenv()) or _G
     return (e and e.script_key) or (e and e.DripFinderKey) or (shared and shared.script_key) or ""
 end
 
 local key = _get_key()
-print("[Drip Finder] Authenticating key: " .. tostring(key))
-print("[Drip Finder] Connecting to wss://drip-finder.onrender.com/ws ...")
-print("[Drip Finder] WebSocket Handshake Complete. Auto-Joiner Active.")
+print("[Slick Finder] Authenticating key: " .. tostring(key))
+print("[Slick Finder] Connecting to wss://drip-finder.onrender.com/ws ...")
+print("[Slick Finder] WebSocket Handshake Complete. Auto-Joiner Active.")
 `);
 });
 
@@ -316,6 +316,6 @@ app.get('*', (req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`[Drip Finder] Server online at http://localhost:${PORT}`);
-  console.log(`[Drip Finder] WebSocket gateway active at ws://localhost:${PORT}/ws`);
+  console.log(`[Slick Finder] Server online at http://localhost:${PORT}`);
+  console.log(`[Slick Finder] WebSocket gateway active at ws://localhost:${PORT}/ws`);
 });
