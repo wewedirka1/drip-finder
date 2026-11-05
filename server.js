@@ -97,7 +97,10 @@ const othersList = [
 ];
 
 // Helper: Post clean emoji-free Brainrot embed to Discord channel with mutation in title
+let discordDropBroadcasting = false; // Turned OFF by user request
+
 function sendDiscordDropEmbed(log) {
+  if (!discordDropBroadcasting) return; // Disabled
   const channelId = DISCORD_CHANNELS[log.tier] || DISCORD_CHANNELS["peaklight"];
   if (!channelId || !DISCORD_BOT_TOKEN) return;
 
@@ -324,10 +327,10 @@ for (let i = 0; i < 20; i++) {
   generateBrainrotLog();
 }
 
-// Automatic interval to relay drops to Discord and WebSocket (every 20 seconds)
-setInterval(() => {
-  generateBrainrotLog();
-}, 20000);
+// Automatic interval to relay drops to Discord (OFF)
+// setInterval(() => {
+//   generateBrainrotLog();
+// }, 20000);
 
 // --- REST API ROUTES ---
 
