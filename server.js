@@ -96,10 +96,13 @@ const othersList = [
   "Caramello Filtrello"
 ];
 
-// Helper: Post clean emoji-free Brainrot embed to Discord channel
+// Helper: Post clean emoji-free Brainrot embed to Discord channel with mutation in title
 function sendDiscordDropEmbed(log) {
   const channelId = DISCORD_CHANNELS[log.tier] || DISCORD_CHANNELS["peaklight"];
   if (!channelId || !DISCORD_BOT_TOKEN) return;
+
+  const mutationPart = log.mutation && log.mutation !== "None" ? ` (${log.mutation})` : "";
+  const title = `${log.name}${mutationPart} [${log.rate}]`;
 
   const embed = {
     color: 0xB026FF,
@@ -107,17 +110,12 @@ function sendDiscordDropEmbed(log) {
       name: "Best Brainrot:",
       icon_url: "https://cdn.discordapp.com/avatars/1567851539345842267/3847a6d93caa0b214bf35669379423ef.png"
     },
-    title: `${log.name} [${log.rate}]`,
+    title: title,
     fields: [
       {
-        name: "Mutation",
-        value: `\`\`\`\n${log.mutation}\n\`\`\``,
-        inline: true
-      },
-      {
         name: "Other",
-        value: `\`\`\`\n${log.other}\n\`\`\``,
-        inline: true
+        value: `\`\`\`\n${log.other || "None"}\n\`\`\``,
+        inline: false
       }
     ],
     thumbnail: {
@@ -307,7 +305,7 @@ function generateBrainrotLog(options = {}) {
   state.logs.unshift(log);
   if (state.logs.length > 200) state.logs.pop();
 
-  // Send clean emoji-free embed to Discord
+  // Send clean emoji-free embed to Discord with mutation in title
   sendDiscordDropEmbed(log);
 
   // Broadcast to all active WebSocket clients
