@@ -300,7 +300,7 @@ function renderHomeDrops() {
     card.className = "p-3 rounded-[10px] bg-[#16161b] border border-[#222228] flex items-center justify-between";
     card.innerHTML = `
       <div class="flex items-center gap-2.5">
-        <span class="text-xl">${log.icon}</span>
+        <span class="text-xl">${log.icon || "🧠"}</span>
         <div>
           <span class="text-xs font-bold text-white block">${log.game}</span>
           <span class="text-[10px] font-mono text-[#c8ff3d]">${log.rarity} · ${log.players}</span>
@@ -342,7 +342,7 @@ function createLogCard(log) {
   card.innerHTML = `
     <div class="flex items-start md:items-center gap-3">
       <div class="w-10 h-10 rounded-[10px] bg-[#17171e] border border-[#272733] flex items-center justify-center text-xl shrink-0">
-        ${log.icon}
+        ${log.icon || "🧠"}
       </div>
       <div class="space-y-1">
         <div class="flex items-center gap-2">

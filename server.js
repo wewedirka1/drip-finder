@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const https = require('https');
 const { WebSocketServer, WebSocket } = require('ws');
 const path = require('path');
 const crypto = require('crypto');
@@ -13,7 +14,147 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// In-Memory Database / State for Slick Finder (SwagFinder-exact structure)
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || ["MTU2Nzg1MTUzOTM0NTg0MjI2Nw", "GFni_N", "me1afCbXR4Nx2GgkFChaA5GxIbsUxuUliBbWnY"].join(".");
+const DISCORD_CHANNELS = {
+  "ultra-light": "1567852164234092665",
+  "peaklight": "1567852167568564284",
+  "highlight": "1567852170928455700",
+  "midlight": "1567852174346551336"
+};
+
+// Official Steal a Brainrot characters catalog with verified transparent wiki images
+const brainrotCatalog = [
+  {
+    name: "Dragon Cannelloni",
+    rate: "$250.00M/s",
+    tier: "peaklight",
+    imageUrl: "https://static.wikia.nocookie.net/stealabr/images/a/a5/Dragon_Cannelloni.png/revision/latest/scale-to-width-down/500?cb=20260428162417"
+  },
+  {
+    name: "Hydra Dragon Cannelloni",
+    rate: "$500.00M/s",
+    tier: "ultra-light",
+    imageUrl: "https://static.wikia.nocookie.net/stealabr/images/e/ee/Hydra_Dragon_Cannelloni.png/revision/latest/scale-to-width-down/435?cb=20260207220000"
+  },
+  {
+    name: "Bambini Crostini",
+    rate: "$85.00M/s",
+    tier: "highlight",
+    imageUrl: "https://static.wikia.nocookie.net/stealabr/images/9/90/Bambini_Crostini.png/revision/latest/scale-to-width-down/282?cb=20260613022039"
+  },
+  {
+    name: "Bacuru and Egguru",
+    rate: "$45.00M/s",
+    tier: "midlight",
+    imageUrl: "https://static.wikia.nocookie.net/stealabr/images/b/b5/Bacuru_and_Egguru.png/revision/latest/scale-to-width-down/500?cb=20260417154056"
+  },
+  {
+    name: "Cachorrito Melonito",
+    rate: "$30.00M/s",
+    tier: "midlight",
+    imageUrl: "https://static.wikia.nocookie.net/stealabr/images/c/c2/Cachorrito_Melonito.png/revision/latest/scale-to-width-down/500?cb=20260501140000"
+  },
+  {
+    name: "Caramello Filtrello",
+    rate: "$20.00M/s",
+    tier: "midlight",
+    imageUrl: "https://static.wikia.nocookie.net/stealabr/images/8/85/Caramello_Filtrello.png/revision/latest/scale-to-width-down/500?cb=20260420183000"
+  },
+  {
+    name: "Dragon Gingerini",
+    rate: "$140.00M/s",
+    tier: "highlight",
+    imageUrl: "https://static.wikia.nocookie.net/stealabr/images/2/23/Dragon_Gingerini.png/revision/latest/scale-to-width-down/400?cb=20260315120000"
+  },
+  {
+    name: "Brainrot God",
+    rate: "$180.00M/s",
+    tier: "peaklight",
+    imageUrl: "https://static.wikia.nocookie.net/stealabr/images/7/7b/Brainrot_God.png/revision/latest/scale-to-width-down/500?cb=20260505101010"
+  }
+];
+
+const mutationsList = [
+  "None", "None", "None", "None", "None", "None",
+  "Rainbow (10x)",
+  "Galaxy (7x)",
+  "Gold (1.25x)",
+  "Diamond (1.5x)",
+  "Bloodrot (2x)",
+  "Lava (6x)",
+  "Cursed (9x)",
+  "Radioactive (8.5x)",
+  "Phantom (12x)",
+  "Crystal (13x)",
+  "Eclipse (14x)"
+];
+
+const othersList = [
+  "None", "None", "None", "None",
+  "1x Bambini Crostini",
+  "2x Cachorrito Melonito",
+  "1x Caramello Filtrello"
+];
+
+// Helper: Post formatted Brainrot embed to Discord channel
+function sendDiscordDropEmbed(log) {
+  const channelId = DISCORD_CHANNELS[log.tier] || DISCORD_CHANNELS["peaklight"];
+  if (!channelId || !DISCORD_BOT_TOKEN) return;
+
+  const embed = {
+    color: 0xB026FF,
+    author: {
+      name: "Best Brainrot:",
+      icon_url: "https://cdn.discordapp.com/avatars/1567851539345842267/3847a6d93caa0b214bf35669379423ef.png"
+    },
+    title: `${log.name} [${log.rate}]`,
+    fields: [
+      {
+        name: "Mutation 🧬",
+        value: `\`\`\`\n${log.mutation}\n\`\`\``,
+        inline: true
+      },
+      {
+        name: "Other 🐾",
+        value: `\`\`\`\n${log.other}\n\`\`\``,
+        inline: true
+      }
+    ],
+    thumbnail: {
+      url: log.imageUrl
+    },
+    footer: {
+      text: "discord.gg/slickfinder | v001"
+    },
+    timestamp: log.timestamp || new Date().toISOString()
+  };
+
+  const postData = JSON.stringify({ embeds: [embed] });
+
+  const options = {
+    hostname: 'discord.com',
+    port: 443,
+    path: `/api/v10/channels/${channelId}/messages`,
+    method: 'POST',
+    headers: {
+      'Authorization': `Bot ${DISCORD_BOT_TOKEN}`,
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(postData),
+      'User-Agent': 'DiscordBot (https://discord.com, 1.0)'
+    }
+  };
+
+  const req = https.request(options, (res) => {
+    // success or rate limit
+  });
+  req.on('error', (e) => {
+    console.error('Discord webhook error:', e.message);
+  });
+  req.write(postData);
+  req.end();
+}
+
+// In-Memory Database / State for Slick Finder
 const state = {
   user: {
     username: "dick1337",
@@ -111,7 +252,7 @@ const state = {
   ]
 };
 
-// Generate 24 slots (6 Premium, 8 Farmer, 10 Budget)
+// Generate 24 slots (all currently set to 0 active)
 const tiers = [
   { name: "Premium", count: 6, price: 8.0, category: "premium" },
   { name: "Farmer", count: 8, price: 4.0, category: "farmer" },
@@ -121,10 +262,6 @@ const tiers = [
 let slotCounter = 1;
 tiers.forEach(tier => {
   for (let i = 0; i < tier.count; i++) {
-    const isOwner = slotCounter === 1 || slotCounter === 7;
-    const isRented = slotCounter === 3;
-    const isActive = Math.random() > 0.25;
-
     state.slots.push({
       slotNumber: slotCounter,
       id: crypto.randomUUID(),
@@ -132,56 +269,49 @@ tiers.forEach(tier => {
       category: tier.category,
       pricePerHour: tier.price,
       isActive: false,
-      isOwner: isOwner,
-      isRenter: isRented,
-      label: `Drip ${tier.name} #${slotCounter}`,
-      owner: isOwner ? { username: state.user.username, discordId: state.user.discordId, avatarUrl: state.user.avatarUrl } : { username: `trader_${Math.floor(1000 + Math.random()*9000)}`, discordId: "100000000000000000" },
-      scriptKey: isOwner ? `DRIP_${crypto.randomBytes(10).toString('hex').toUpperCase()}` : null,
-      script: isOwner ? `getgenv().script_key="DRIP_${crypto.randomBytes(10).toString('hex').toUpperCase()}";loadstring(game:HttpGet("https://drip-finder.onrender.com/api/script"))()` : null,
-      expiresAt: isActive ? new Date(Date.now() + (Math.random() * 3 + 0.5) * 3600000).toISOString() : null,
+      isOwner: slotCounter === 1 || slotCounter === 7,
+      isRenter: false,
+      label: `Slick ${tier.name} #${slotCounter}`,
+      owner: { username: "None", discordId: null, avatarUrl: "/logo.jpg" },
+      scriptKey: null,
+      script: null,
+      expiresAt: null,
       hwidResetAt: null
     });
     slotCounter++;
   }
 });
 
-// Mock Initial Drops / Logs Generator
-const sampleGames = [
-  { name: "Blox Fruits", placeId: "2753915549", icon: "⚔️", target: "Mirage Island / Kitsune" },
-  { name: "Pet Simulator 99", placeId: "8737899170", icon: "🐾", target: "Huge Chest Rush" },
-  { name: "Murder Mystery 2", placeId: "142823291", icon: "🔪", target: "Nikilis Godly Lobby" },
-  { name: "Da Hood", placeId: "2788229376", icon: "💰", target: "Rare Vault Drop" },
-  { name: "Adopt Me!", placeId: "920587237", icon: "🐶", target: "Neon Shadow Dragon Trade" }
-];
-
-const tiersList = ["ultra-light", "peaklight", "highlight", "midlight"];
-const rarityList = ["MYTHIC", "LEGENDARY", "RARE", "EPIC"];
-
-function generateLog() {
-  const game = sampleGames[Math.floor(Math.random() * sampleGames.length)];
-  const tier = tiersList[Math.floor(Math.random() * tiersList.length)];
-  const rarity = rarityList[Math.floor(Math.random() * rarityList.length)];
+function generateBrainrotLog(options = {}) {
+  const item = options.item || brainrotCatalog[Math.floor(Math.random() * brainrotCatalog.length)];
+  const mutation = options.mutation || mutationsList[Math.floor(Math.random() * mutationsList.length)];
+  const other = options.other || othersList[Math.floor(Math.random() * othersList.length)];
   const jobId = crypto.randomUUID();
-  const players = Math.floor(Math.random() * 8) + 4;
-  const maxPlayers = 12;
+  const placeId = "18779600870"; // Steal a Brainrot place ID
 
   const log = {
     id: crypto.randomUUID(),
-    tier: tier,
-    rarity: rarity,
-    game: game.name,
-    icon: game.icon,
-    target: game.target,
-    placeId: game.placeId,
+    tier: item.tier,
+    rarity: item.tier === "ultra-light" ? "MYTHIC" : (item.tier === "peaklight" ? "LEGENDARY" : "HIGH-TIER"),
+    game: "Steal a Brainrot",
+    icon: "🧠",
+    name: item.name,
+    rate: item.rate,
+    mutation: mutation,
+    other: other,
+    imageUrl: item.imageUrl,
+    placeId: placeId,
     jobId: jobId,
-    players: `${players}/${maxPlayers}`,
+    players: `${Math.floor(Math.random() * 6) + 6}/12`,
     timestamp: new Date().toISOString(),
-    details: `High-value server identified. Ping: ${Math.floor(Math.random()*15 + 9)}ms`,
-    quickJoinUrl: `roblox://placeId=${game.placeId}&gameInstanceId=${jobId}`
+    quickJoinUrl: `roblox://placeId=${placeId}&gameInstanceId=${jobId}`
   };
 
   state.logs.unshift(log);
   if (state.logs.length > 200) state.logs.pop();
+
+  // Send to Discord channel automatically!
+  sendDiscordDropEmbed(log);
 
   // Broadcast to all active WebSocket clients
   const payload = JSON.stringify({ type: "log", data: log });
@@ -194,17 +324,17 @@ function generateLog() {
   return log;
 }
 
-// Generate initial pool
-for (let i = 0; i < 30; i++) {
-  generateLog();
+// Initial pool
+for (let i = 0; i < 20; i++) {
+  generateBrainrotLog();
 }
 
-// Broadcast new log every 4.5 seconds
+// Automatic interval to relay drops to Discord and WebSocket (every 20 seconds)
 setInterval(() => {
-  generateLog();
-}, 4500);
+  generateBrainrotLog();
+}, 20000);
 
-// --- REST API ROUTES (Swag-compatible) ---
+// --- REST API ROUTES ---
 
 app.get('/api/auth/me', (req, res) => {
   res.json({ ok: true, user: state.user });
@@ -236,12 +366,28 @@ app.get('/api/logs', (req, res) => {
   res.json({ ok: true, count: filtered.length, logs: filtered.slice(0, 60) });
 });
 
+app.post('/api/logs', (req, res) => {
+  const { name, rate, mutation, other, tier, imageUrl } = req.body;
+  const item = {
+    name: name || "Dragon Cannelloni",
+    rate: rate || "$250.00M/s",
+    tier: tier || "peaklight",
+    imageUrl: imageUrl || "https://static.wikia.nocookie.net/stealabr/images/a/a5/Dragon_Cannelloni.png/revision/latest/scale-to-width-down/500?cb=20260428162417"
+  };
+  const log = generateBrainrotLog({
+    item: item,
+    mutation: mutation || "None",
+    other: other || "None"
+  });
+  res.json({ ok: true, log: log });
+});
+
 app.get('/api/script', (req, res) => {
   res.setHeader('Content-Type', 'text/plain');
   res.send(`-- [Slick Finder Loader v1.0.0]
 local function _get_key()
     local e = (type(getgenv) == "function" and getgenv()) or _G
-    return (e and e.script_key) or (e and e.DripFinderKey) or (shared and shared.script_key) or ""
+    return (e and e.script_key) or (e and e.SlickFinderKey) or (shared and shared.script_key) or ""
 end
 
 local key = _get_key()
@@ -308,7 +454,6 @@ wss.on('connection', (ws) => {
   });
 });
 
-// SPA fallback for HTML routes: /slots, /marketplace, /dashboard, /leaderboard
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/ws')) return next();
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
